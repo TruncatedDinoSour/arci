@@ -2,6 +2,8 @@
 
 > A simple init system written in POSIX sh
 
+![Screenshot](/ss.jpg)
+
 # Installation
 
 ```sh
