@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+. /lib/arci/arci.mod.sh
+
+log 'Starting dhcpcd daemon'
+[ "$1" = 'start' ] && dhcpcd -bq
+elog 'done'

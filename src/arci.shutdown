@@ -1,0 +1,57 @@
+#!/usr/bin/env sh
+
+. /lib/arci/arci.mod.sh
+. "$ARCI_DIR/arci.conf"
+
+main() {
+    echo
+    slog 'Beggining shutdown'
+    do_service stop
+
+    log 'Stopping udev'
+    udevadm control --exit
+    elog 'stopped'
+
+    do_noproc
+    do_hwclock
+
+    log 'Disabling swap'
+    swapoff -a
+    elog 'disabled'
+
+    log 'Bringing LO interface down'
+    ip link set lo down
+    elog 'down'
+
+    log 'Unmounting filesystems'
+    umount -a -d -r -t notmpfs,nosysfs,nodevtmpfs,noproc,nodevpts
+    elog 'umounted'
+
+    log 'Remounting rootfs as RO'
+    mount -o remount,ro /
+    elog 'remounted'
+
+    if [ "$RUNLEVEL" = 0 ]; then
+        log 'Writing halt record to wtmp'
+        halt -w
+    else
+        log 'Writing reboot record to wtmp'
+        reboot -w
+    fi
+
+    elog 'wrote'
+
+    log 'Syncing filesystems'
+    sync
+    elog 'synced'
+
+    if [ "$RUNLEVEL" = 0 ]; then
+        slog 'Powering off'
+        halt -d -f -i -p
+    else
+        slog 'Rebooting'
+        reboot -d -f -i
+    fi
+}
+
+main "$@"

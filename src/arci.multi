@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+. /lib/arci/arci.mod.sh
+. "$ARCI_DIR/arci.conf"
+
+main() {
+    if [ "$SERVICES" ]; then
+        for service in $SERVICES; do
+            if [ -x "$ARCI_SDIR/$service" ]; then
+                echo " # Starting: $service"
+                "$ARCI_SDIR/$service" start
+            fi
+        done
+    fi
+}
+
+main "$@"

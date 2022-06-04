@@ -1,0 +1,89 @@
+#!/usr/bin/env sh
+
+. /lib/arci/arci.mod.sh
+. "$ARCI_DIR/arci.conf"
+
+main() {
+    slog "Arci init version $ARCI_VERSION"
+
+    log 'Mounting virtual filesystems'
+    mountpoint -q /proc || mount -t proc proc /proc -o "$VFS_FLAGS"
+    mountpoint -q /sys || mount -t sysfs sys /sys -o "$VFS_FLAGS"
+    mountpoint -q /run || mount -t tmpfs run /run -o "$DFS_FLAGS,nodev"
+    mountpoint -q /dev || mount -t devtmpfs dev /dev -o "$DFS_FLAGS"
+    elog 'mounted'
+
+    log 'Preparing lock directories'
+    for lockdir in $LOCKDIRS; do
+        mkdir -p -- "$lockdir"
+        chmod 0755 -- "$lockdir"
+    done
+    elog 'made'
+
+    log 'Preparing memory mounts'
+    mountpoint -q /dev/pts || mount /dev/pts >/dev/null 2>&1 || mount -t devpts devpts /dev/pts -o mode=0620,gid=5,nosuid,noexec
+    mountpoint -q /dev/shm || mount /dev/shm >/dev/null 2>&1 || mount -t tmpfs shm /dev/shm -o mode=1777,nosuid,nodev
+    elog 'mounted'
+
+    log 'Populating /dev'
+    do_udev
+    elog 'populated'
+
+    log 'Activating swap'
+    swapon -a
+    elog 'acitivated'
+
+    log 'Activating LO interface'
+    ip addr add 127.0.0.1/8 label lo dev lo
+    ip link set lo up
+    elog 'activated'
+
+    log 'Mounting all remaining filesystems'
+    mount --options remount,rw / >/dev/null
+    mount --all --test-opts no_netdev >/dev/null
+    elog 'mounted'
+
+    log 'Setting hostname'
+    if [ -f /etc/hostname ]; then
+        _hostname="$(cat -- /etc/hostname)"
+    else
+        _hostname='localhost'
+    fi
+    hostname "$_hostname"
+    elog "$_hostname"
+
+    log 'Preparing system'
+    : >/var/run/utmp
+
+    if grep -q '^utmp:' /etc/group; then
+        chmod 664 /var/run/utmp
+        chgrp utmp /var/run/utmp
+    fi
+
+    find /var/run -name "*.pid" -delete
+    find /tmp -xdev -mindepth 1 ! -name lost+found -delete
+    mkdir -m 1777 /tmp/.ICE-unix /tmp/.X11-unix
+    elog 'prepared'
+
+    if [ -f '/etc/sysctl.conf' ]; then
+        log 'Setting up systectl'
+        sysctl -q -p
+        elog 'setup'
+    fi
+
+    do_hwclock
+
+    log 'Updating ldconfig'
+    ldconfig
+    elog 'done'
+
+    if [ -d '/sys/firmware/efi/efivars' ]; then
+        log 'Mounting efivars'
+        mount -t efivarfs none /sys/firmware/efi/efivars
+        elog 'done'
+    fi
+
+    slog 'Initialisation finished'
+}
+
+main "$@"

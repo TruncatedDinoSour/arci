@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+
+. /lib/arci/arci.mod.sh
+. "$ARCI_DIR/arci.conf"
+
+main() {
+    do_service stop
+
+    if [ "$PREVLEVEL" != 'N' ]; then
+        do_noproc
+
+        log 'Mounting virtual filesystems'
+        mountpoint -q /run || mount /run
+        mountpoint -q /proc || mount -o "$VFS_FLAGS" /proc
+        mountpoint -q /sys || mount -o "$VFS_FLAGS" /sys
+        mountpoint -q /dev || mount -o "$DFS_FLAGS" /dev
+
+        mkdir -p /run/lock /run/shm /dev/pts
+        chmod 1777 /run/shm /run/lock
+
+        ln -sfn /run/shm /dev/shm
+        elog 'done'
+
+        log 'Settling all devices'
+        do_udev
+        elog 'done'
+    fi
+
+    [ "$RUNLEVEL" = '1' ] && exec init -t1 S
+}
+
+main "$@"
