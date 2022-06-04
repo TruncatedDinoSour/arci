@@ -18,6 +18,10 @@ main() {
 
     log 'Configuring'
     install -Dm644 arci.conf "$ARCI_DIR"
+
+    log 'Adding services'
+    mkdir -p -- "$DESTDIR/etc/arci.sv.d"
+    install -Dm754 arci.sv.d/* "$DESTDIR/etc/arci.sv.d"
 }
 
 main "$@"
