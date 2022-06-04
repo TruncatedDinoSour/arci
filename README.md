@@ -10,4 +10,4 @@ $ sudo ./setup.sh
 
 # Requirements
 
-- SysVInit (or any other init that works with `/etc/inittab`
+- SysVInit (or any other init that works with `/etc/inittab`)
