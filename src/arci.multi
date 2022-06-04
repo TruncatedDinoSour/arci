@@ -7,7 +7,7 @@ main() {
     if [ "$SERVICES" ]; then
         for service in $SERVICES; do
             if [ -x "$ARCI_SDIR/$service" ]; then
-                echo " # Starting: $service"
+                echo " ## Starting: $service"
                 "$ARCI_SDIR/$service" start
             fi
         done
