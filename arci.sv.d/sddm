@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+. /lib/arci/arci.mod.sh
+
+log 'Starting SDDM display manager'
+[ "$1" = 'start' ] && sddm &
+elog 'done'
