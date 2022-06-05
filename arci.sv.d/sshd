@@ -4,8 +4,8 @@
 
 case "$1" in
 start)
-    log 'Starting dhcpcd daemon'
-    dhcpcd -bq
+    log 'Starting SSH daemon'
+    eval "$(which sshd)"
     elog 'done'
     ;;
 esac

@@ -2,6 +2,10 @@
 
 . /lib/arci/arci.mod.sh
 
-log 'Starting SDDM display manager'
-[ "$1" = 'start' ] && sddm &
-elog 'done'
+case "$1" in
+start)
+    log 'Starting SDDM display manager'
+    sddm &
+    elog 'done'
+    ;;
+esac
